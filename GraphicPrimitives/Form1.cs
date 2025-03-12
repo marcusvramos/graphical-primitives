@@ -28,11 +28,11 @@ namespace GraphicPrimitives
 
         private void panelDraw_MouseDown(object sender, MouseEventArgs e)
         {
-            // Se não há ponto inicial registrado, usamos este clique como primeiro ponto
             if (startPoint == null)
             {
+                // Primeiro clique
                 startPoint = e.Location;
-                // Desenha um marcador (opcional) para indicar o primeiro clique
+                // Marcar visualmente (opcional)
                 using (Graphics g = Graphics.FromImage(drawingBitmap))
                 {
                     g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
@@ -41,57 +41,48 @@ namespace GraphicPrimitives
             }
             else
             {
-                // Já existe ponto inicial; este é o segundo clique
+                // Segundo clique
                 Point endPoint = e.Location;
 
-                // Desenhar de acordo com o RadioButton selecionado
                 if (rbEqReta.Checked)
                 {
-                    // Reta - Equação da Reta
                     DrawLineEquationUnsafe(startPoint.Value, endPoint, Color.Red);
                 }
                 else if (rbDDA.Checked)
                 {
-                    // Reta - DDA
                     DrawLineDDAUnsafe(startPoint.Value, endPoint, Color.Green);
                 }
                 else if (rbPMedio.Checked)
                 {
-                    // Reta - Ponto Médio (Bresenham)
                     DrawLineBresenhamUnsafe(startPoint.Value, endPoint, Color.Blue);
                 }
                 else if (rbEqCirc.Checked)
                 {
-                    // Circunferência - Equação
                     int r = CalcularRaio(startPoint.Value, endPoint);
                     DrawCircleEquationUnsafe(startPoint.Value, r, Color.Orange);
                 }
                 else if (rbPMCirc.Checked)
                 {
-                    // Circunferência - Ponto Médio
                     int r = CalcularRaio(startPoint.Value, endPoint);
                     DrawCircleMidpointUnsafe(startPoint.Value, r, Color.Purple);
                 }
+                else if (rbCircPoligono.Checked)
+                {
+                    // Polígono regular
+                    int r = CalcularRaio(startPoint.Value, endPoint);
+                    DrawCirclePolygonApprox(startPoint.Value, r, Color.Brown);
+                }
 
-                panelDraw.Invalidate(); // invalida tudo, garante que o círculo aparece
+                // Invalida tudo para garantir que apareça
+                panelDraw.Invalidate();
+
+                // Reset do ponto inicial
                 startPoint = null;
             }
         }
 
         /// <summary>
-        /// Função auxiliar para calcular o retângulo mínimo que contém a linha ou círculo.
-        /// </summary>
-        private Rectangle GetInvalidationRect(Point p1, Point p2)
-        {
-            int x = Math.Min(p1.X, p2.X) - 1;
-            int y = Math.Min(p1.Y, p2.Y) - 1;
-            int width = Math.Abs(p2.X - p1.X) + 3;
-            int height = Math.Abs(p2.Y - p1.Y) + 3;
-            return new Rectangle(x, y, width, height);
-        }
-
-        /// <summary>
-        /// Calcula o raio de um círculo dados o centro e um ponto no perímetro.
+        /// Calcula o raio (distância) entre o centro e o ponto de perímetro.
         /// </summary>
         private int CalcularRaio(Point c, Point p)
         {
@@ -105,24 +96,20 @@ namespace GraphicPrimitives
         /// </summary>
         private unsafe void PutPixel(byte* ptr, int stride, int x, int y, Color color)
         {
-            // Verifica se está dentro dos limites do Bitmap
             if (x < 0 || x >= drawingBitmap.Width || y < 0 || y >= drawingBitmap.Height)
                 return;
 
             int index = y * stride + x * 4;
-            ptr[index + 0] = color.B;   // Blue
-            ptr[index + 1] = color.G;   // Green
-            ptr[index + 2] = color.R;   // Red
-            ptr[index + 3] = color.A;   // Alpha
+            ptr[index + 0] = color.B;
+            ptr[index + 1] = color.G;
+            ptr[index + 2] = color.R;
+            ptr[index + 3] = color.A;
         }
 
         // =================================
         // Métodos de Desenho de Retas
         // =================================
 
-        /// <summary>
-        /// 1. Método: Equação Real da Reta
-        /// </summary>
         private unsafe void DrawLineEquationUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
@@ -135,10 +122,8 @@ namespace GraphicPrimitives
 
             if (Math.Abs(dx) >= Math.Abs(dy))
             {
-                // varredura em x
                 if (p0.X > p1.X)
                 {
-                    // Se x0 > x1, inverte
                     Point temp = p0; p0 = p1; p1 = temp;
                     dx = p1.X - p0.X;
                     dy = p1.Y - p0.Y;
@@ -152,7 +137,6 @@ namespace GraphicPrimitives
             }
             else
             {
-                // varredura em y
                 if (p0.Y > p1.Y)
                 {
                     Point temp = p0; p0 = p1; p1 = temp;
@@ -170,9 +154,6 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
-        /// <summary>
-        /// 2. Método: DDA
-        /// </summary>
         private unsafe void DrawLineDDAUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
@@ -199,9 +180,6 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
-        /// <summary>
-        /// 3. Método: Ponto Médio (Bresenham)
-        /// </summary>
         private unsafe void DrawLineBresenhamUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
@@ -211,8 +189,8 @@ namespace GraphicPrimitives
 
             int x0 = p0.X, y0 = p0.Y;
             int x1 = p1.X, y1 = p1.Y;
-
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
+
             if (steep)
             {
                 Swap(ref x0, ref y0);
@@ -266,14 +244,12 @@ namespace GraphicPrimitives
             int cx = center.X;
             int cy = center.Y;
 
-            // varre x de 0 até r, calculando y = sqrt(r^2 - x^2)
             for (int x = 0; x <= radius; x++)
             {
-                double temp = (double)(radius * radius) - (x * (double)x);
-                if (temp < 0) break; // apenas por segurança numérica
+                double temp = (radius * (double)radius) - (x * (double)x);
+                if (temp < 0) break; // por segurança
                 int y = (int)Math.Round(Math.Sqrt(temp));
 
-                // coloca os 8 pontos de simetria
                 PutCirclePoints(ptr, stride, cx, cy, x, y, color);
             }
 
@@ -295,9 +271,8 @@ namespace GraphicPrimitives
 
             int x = 0;
             int y = radius;
-            int d = 1 - radius; // valor inicial
+            int d = 1 - radius;
 
-            // Desenha os pontos iniciais (x=0, y=r)
             PutCirclePoints(ptr, stride, cx, cy, x, y, color);
 
             while (x < y)
@@ -305,12 +280,10 @@ namespace GraphicPrimitives
                 x++;
                 if (d < 0)
                 {
-                    // escolhe E
                     d += 2 * x + 1;
                 }
                 else
                 {
-                    // escolhe SE
                     y--;
                     d += 2 * (x - y) + 1;
                 }
@@ -321,31 +294,54 @@ namespace GraphicPrimitives
         }
 
         /// <summary>
-        /// Função que coloca na tela os 8 pontos de simetria de (x,y).
+        /// 3. Método: Aproximação por Polígono Regular
+        /// (desenho de n lados conectados)
+        /// </summary>
+        private void DrawCirclePolygonApprox(Point center, int radius, Color color)
+        {
+            // Defina quantos lados terá o polígono
+            int n = 60; // você pode alterar para 30, 90, etc.
+
+            // Calcula os vértices
+            double anguloPorSegmento = (2.0 * Math.PI) / n;
+            Point[] vertices = new Point[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                double ang = i * anguloPorSegmento;
+                int x = center.X + (int)Math.Round(radius * Math.Cos(ang));
+                int y = center.Y + (int)Math.Round(radius * Math.Sin(ang));
+                vertices[i] = new Point(x, y);
+            }
+
+            // Desenha linhas entre vértices consecutivos
+            for (int i = 0; i < n; i++)
+            {
+                Point p0 = vertices[i];
+                Point p1 = vertices[(i + 1) % n]; // fecha o polígono
+                // usar DDA, Bresenham ou a "Equação da Reta"
+                DrawLineDDAUnsafe(p0, p1, color);
+            }
+        }
+
+        /// <summary>
+        /// Desenha os 8 pontos de simetria a partir de (x,y).
         /// </summary>
         private unsafe void PutCirclePoints(byte* ptr, int stride, int cx, int cy, int x, int y, Color color)
         {
-            // (cx + x, cy + y)
             PutPixel(ptr, stride, cx + x, cy + y, color);
-            // (cx + x, cy - y)
             PutPixel(ptr, stride, cx + x, cy - y, color);
-            // (cx - x, cy + y)
             PutPixel(ptr, stride, cx - x, cy + y, color);
-            // (cx - x, cy - y)
             PutPixel(ptr, stride, cx - x, cy - y, color);
 
-            // (cx + y, cy + x)
             PutPixel(ptr, stride, cx + y, cy + x, color);
-            // (cx + y, cy - x)
             PutPixel(ptr, stride, cx + y, cy - x, color);
-            // (cx - y, cy + x)
             PutPixel(ptr, stride, cx - y, cy + x, color);
-            // (cx - y, cy - x)
             PutPixel(ptr, stride, cx - y, cy - x, color);
         }
 
         /// <summary>
-        /// Troca de valores inteiros (auxiliar usada no Bresenham de reta).
+        /// Troca de valores inteiros (auxiliar do Bresenham de retas).
         /// </summary>
         private void Swap(ref int a, ref int b)
         {

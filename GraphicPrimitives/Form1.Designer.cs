@@ -26,6 +26,9 @@ namespace GraphicPrimitives
         private RadioButton rbEqCirc;
         private RadioButton rbPMCirc;
 
+        // (NOVO) RadioButton de Polígono
+        private RadioButton rbCircPoligono;
+
         /// <summary>
         /// Limpa os recursos que estão sendo usados.
         /// </summary>
@@ -44,6 +47,7 @@ namespace GraphicPrimitives
         {
             this.components = new System.ComponentModel.Container();
             this.SuspendLayout();
+
             // 
             // Configurações do Form
             // 
@@ -57,7 +61,7 @@ namespace GraphicPrimitives
             this.AutoScaleMode = AutoScaleMode.Font;
 
             // 
-            // Painel de desenho (área principal)
+            // Painel de desenho
             // 
             this.panelDraw = new Panel();
             this.panelDraw.Dock = DockStyle.Fill;
@@ -66,7 +70,7 @@ namespace GraphicPrimitives
             this.panelDraw.Paint += new PaintEventHandler(this.panelDraw_Paint);
 
             // 
-            // GroupBox (menu lateral)
+            // groupBoxMenu
             // 
             this.groupBoxMenu = new GroupBox();
             this.groupBoxMenu.Dock = DockStyle.Right;
@@ -77,7 +81,7 @@ namespace GraphicPrimitives
             this.groupBoxMenu.BackColor = Color.WhiteSmoke;
 
             // 
-            // RadioButton Eq. da Reta
+            // Rádios de Reta
             // 
             this.rbEqReta = new RadioButton();
             this.rbEqReta.Text = "Equação da Reta";
@@ -85,11 +89,8 @@ namespace GraphicPrimitives
             this.rbEqReta.ForeColor = Color.DarkSlateBlue;
             this.rbEqReta.Location = new Point(20, 50);
             this.rbEqReta.AutoSize = true;
-            this.rbEqReta.Checked = true; // Definido como padrão
+            this.rbEqReta.Checked = true;
 
-            // 
-            // RadioButton DDA
-            // 
             this.rbDDA = new RadioButton();
             this.rbDDA.Text = "DDA";
             this.rbDDA.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
@@ -97,9 +98,6 @@ namespace GraphicPrimitives
             this.rbDDA.Location = new Point(20, 80);
             this.rbDDA.AutoSize = true;
 
-            // 
-            // RadioButton Ponto Médio (Bresenham)
-            // 
             this.rbPMedio = new RadioButton();
             this.rbPMedio.Text = "Reta (Ponto Médio)";
             this.rbPMedio.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
@@ -108,7 +106,7 @@ namespace GraphicPrimitives
             this.rbPMedio.AutoSize = true;
 
             // 
-            // RadioButton Circunferência (Equação)
+            // Rádios de Circunferência
             // 
             this.rbEqCirc = new RadioButton();
             this.rbEqCirc.Text = "Circunf. (Equação)";
@@ -117,9 +115,6 @@ namespace GraphicPrimitives
             this.rbEqCirc.Location = new Point(20, 140);
             this.rbEqCirc.AutoSize = true;
 
-            // 
-            // RadioButton Circunferência (Ponto Médio)
-            // 
             this.rbPMCirc = new RadioButton();
             this.rbPMCirc.Text = "Circunf. (Pto Médio)";
             this.rbPMCirc.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
@@ -128,13 +123,23 @@ namespace GraphicPrimitives
             this.rbPMCirc.AutoSize = true;
 
             // 
-            // Botão de Limpar
+            // (NOVO) RadioButton Polígono Regular
+            // 
+            this.rbCircPoligono = new RadioButton();
+            this.rbCircPoligono.Text = "Circunf. (Polígono)";
+            this.rbCircPoligono.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            this.rbCircPoligono.ForeColor = Color.DarkSlateBlue;
+            this.rbCircPoligono.Location = new Point(20, 200);
+            this.rbCircPoligono.AutoSize = true;
+
+            // 
+            // Botão Limpar
             // 
             Button btnClear = new Button();
             btnClear.Text = "Limpar";
             btnClear.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
             btnClear.ForeColor = Color.Black;
-            btnClear.Location = new Point(20, 210);
+            btnClear.Location = new Point(20, 240);
             btnClear.Size = new Size(100, 40);
             btnClear.Click += new EventHandler(this.btnClear_Click);
 
@@ -146,6 +151,7 @@ namespace GraphicPrimitives
             this.groupBoxMenu.Controls.Add(this.rbPMedio);
             this.groupBoxMenu.Controls.Add(this.rbEqCirc);
             this.groupBoxMenu.Controls.Add(this.rbPMCirc);
+            this.groupBoxMenu.Controls.Add(this.rbCircPoligono);
             this.groupBoxMenu.Controls.Add(btnClear);
 
             // 
@@ -154,9 +160,7 @@ namespace GraphicPrimitives
             this.Controls.Add(this.panelDraw);
             this.Controls.Add(this.groupBoxMenu);
 
-            // Tamanho mínimo do Form (opcional)
             this.MinimumSize = new Size(800, 600);
-
             this.ResumeLayout(false);
         }
     }
