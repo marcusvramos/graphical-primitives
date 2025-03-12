@@ -25,9 +25,10 @@ namespace GraphicPrimitives
         // RadioButtons de Circunferência
         private RadioButton rbEqCirc;
         private RadioButton rbPMCirc;
-
-        // (NOVO) RadioButton de Polígono
         private RadioButton rbCircPoligono;
+
+        // RadioButton de Elipse
+        private RadioButton rbElipse;
 
         /// <summary>
         /// Limpa os recursos que estão sendo usados.
@@ -51,7 +52,7 @@ namespace GraphicPrimitives
             // 
             // Configurações do Form
             // 
-            this.Text = "Desenhador de Retas e Circunferências";
+            this.Text = "Desenhador de Retas, Circunferências e Elipses";
             this.WindowState = FormWindowState.Maximized;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.Sizable;
@@ -92,7 +93,7 @@ namespace GraphicPrimitives
             this.rbEqReta.Checked = true;
 
             this.rbDDA = new RadioButton();
-            this.rbDDA.Text = "DDA";
+            this.rbDDA.Text = "Reta (DDA)";
             this.rbDDA.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
             this.rbDDA.ForeColor = Color.DarkSlateBlue;
             this.rbDDA.Location = new Point(20, 80);
@@ -122,9 +123,6 @@ namespace GraphicPrimitives
             this.rbPMCirc.Location = new Point(20, 170);
             this.rbPMCirc.AutoSize = true;
 
-            // 
-            // (NOVO) RadioButton Polígono Regular
-            // 
             this.rbCircPoligono = new RadioButton();
             this.rbCircPoligono.Text = "Circunf. (Polígono)";
             this.rbCircPoligono.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
@@ -133,13 +131,23 @@ namespace GraphicPrimitives
             this.rbCircPoligono.AutoSize = true;
 
             // 
+            // RadioButton de Elipse
+            // 
+            this.rbElipse = new RadioButton();
+            this.rbElipse.Text = "Elipse (Pto Médio)";
+            this.rbElipse.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            this.rbElipse.ForeColor = Color.DarkSlateBlue;
+            this.rbElipse.Location = new Point(20, 230);
+            this.rbElipse.AutoSize = true;
+
+            // 
             // Botão Limpar
             // 
             Button btnClear = new Button();
             btnClear.Text = "Limpar";
             btnClear.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
             btnClear.ForeColor = Color.Black;
-            btnClear.Location = new Point(20, 240);
+            btnClear.Location = new Point(20, 270);
             btnClear.Size = new Size(100, 40);
             btnClear.Click += new EventHandler(this.btnClear_Click);
 
@@ -152,6 +160,7 @@ namespace GraphicPrimitives
             this.groupBoxMenu.Controls.Add(this.rbEqCirc);
             this.groupBoxMenu.Controls.Add(this.rbPMCirc);
             this.groupBoxMenu.Controls.Add(this.rbCircPoligono);
+            this.groupBoxMenu.Controls.Add(this.rbElipse);
             this.groupBoxMenu.Controls.Add(btnClear);
 
             // 

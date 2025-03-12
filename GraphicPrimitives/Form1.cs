@@ -18,7 +18,11 @@ namespace GraphicPrimitives
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            drawingBitmap = new Bitmap(panelDraw.ClientSize.Width, panelDraw.ClientSize.Height, PixelFormat.Format32bppArgb);
+            drawingBitmap = new Bitmap(
+                panelDraw.ClientSize.Width, 
+                panelDraw.ClientSize.Height, 
+                PixelFormat.Format32bppArgb
+            );
         }
 
         private void panelDraw_Paint(object sender, PaintEventArgs e)
@@ -32,7 +36,8 @@ namespace GraphicPrimitives
             {
                 // Primeiro clique
                 startPoint = e.Location;
-                // Marcar visualmente (opcional)
+
+                // Marca visualmente (opcional)
                 using (Graphics g = Graphics.FromImage(drawingBitmap))
                 {
                     g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
@@ -44,6 +49,9 @@ namespace GraphicPrimitives
                 // Segundo clique
                 Point endPoint = e.Location;
 
+                // =====================================
+                // RETAS
+                // =====================================
                 if (rbEqReta.Checked)
                 {
                     DrawLineEquationUnsafe(startPoint.Value, endPoint, Color.Red);
@@ -56,6 +64,10 @@ namespace GraphicPrimitives
                 {
                     DrawLineBresenhamUnsafe(startPoint.Value, endPoint, Color.Blue);
                 }
+
+                // =====================================
+                // CIRCUNFERÊNCIA
+                // =====================================
                 else if (rbEqCirc.Checked)
                 {
                     int r = CalcularRaio(startPoint.Value, endPoint);
@@ -68,21 +80,33 @@ namespace GraphicPrimitives
                 }
                 else if (rbCircPoligono.Checked)
                 {
-                    // Polígono regular
                     int r = CalcularRaio(startPoint.Value, endPoint);
                     DrawCirclePolygonApprox(startPoint.Value, r, Color.Brown);
                 }
 
-                // Invalida tudo para garantir que apareça
+                // =====================================
+                // ELIPSE
+                // =====================================
+                else if (rbElipse.Checked)
+                {
+                    // Calcula semi-eixos a e b
+                    // a = diferença em X, b = diferença em Y
+                    int a = Math.Abs(endPoint.X - startPoint.Value.X);
+                    int b = Math.Abs(endPoint.Y - startPoint.Value.Y);
+
+                    DrawEllipseMidpointUnsafe(startPoint.Value, a, b, Color.DarkRed);
+                }
+
+                // Invalida tudo para forçar o repaint
                 panelDraw.Invalidate();
 
-                // Reset do ponto inicial
+                // Reseta o ponto inicial
                 startPoint = null;
             }
         }
 
         /// <summary>
-        /// Calcula o raio (distância) entre o centro e o ponto de perímetro.
+        /// Calcula o raio entre o ponto (centro) e outro (perímetro).
         /// </summary>
         private int CalcularRaio(Point c, Point p)
         {
@@ -92,7 +116,7 @@ namespace GraphicPrimitives
         }
 
         /// <summary>
-        /// Desenha um pixel na posição (x, y).
+        /// Desenha um pixel (x,y) no bitmap.
         /// </summary>
         private unsafe void PutPixel(byte* ptr, int stride, int x, int y, Color color)
         {
@@ -107,13 +131,16 @@ namespace GraphicPrimitives
         }
 
         // =================================
-        // Métodos de Desenho de Retas
+        // DESENHO DE RETAS
         // =================================
 
+        // 1. Equação da Reta
         private unsafe void DrawLineEquationUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
             byte* ptr = (byte*)data.Scan0;
             int stride = data.Stride;
 
@@ -154,10 +181,13 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
+        // 2. DDA
         private unsafe void DrawLineDDAUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
             byte* ptr = (byte*)data.Scan0;
             int stride = data.Stride;
 
@@ -180,17 +210,20 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
+        // 3. Ponto Médio (Bresenham)
         private unsafe void DrawLineBresenhamUnsafe(Point p0, Point p1, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
             byte* ptr = (byte*)data.Scan0;
             int stride = data.Stride;
 
             int x0 = p0.X, y0 = p0.Y;
             int x1 = p1.X, y1 = p1.Y;
-            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
 
+            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
             if (steep)
             {
                 Swap(ref x0, ref y0);
@@ -226,18 +259,24 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
+        private void Swap(ref int a, ref int b)
+        {
+            int temp = a;
+            a = b;
+            b = temp;
+        }
+
         // =================================
-        // Métodos de Desenho de Circunferência
+        // DESENHO DE CIRCUNFERÊNCIA
         // =================================
 
-        /// <summary>
-        /// 1. Método: Equação da Circunferência
-        /// (Desenha 1/8 e espelha nos 8 octantes)
-        /// </summary>
+        // 1. Equação Explícita (com raiz + simetria)
         private unsafe void DrawCircleEquationUnsafe(Point center, int radius, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
             byte* ptr = (byte*)data.Scan0;
             int stride = data.Stride;
 
@@ -247,7 +286,7 @@ namespace GraphicPrimitives
             for (int x = 0; x <= radius; x++)
             {
                 double temp = (radius * (double)radius) - (x * (double)x);
-                if (temp < 0) break; // por segurança
+                if (temp < 0) break;
                 int y = (int)Math.Round(Math.Sqrt(temp));
 
                 PutCirclePoints(ptr, stride, cx, cy, x, y, color);
@@ -256,13 +295,13 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
-        /// <summary>
-        /// 2. Método: Ponto Médio (Bresenham) para Circunferência
-        /// </summary>
+        // 2. Ponto Médio (Midpoint) da Circunferência
         private unsafe void DrawCircleMidpointUnsafe(Point center, int radius, Color color)
         {
             Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
             byte* ptr = (byte*)data.Scan0;
             int stride = data.Stride;
 
@@ -293,16 +332,13 @@ namespace GraphicPrimitives
             drawingBitmap.UnlockBits(data);
         }
 
-        /// <summary>
-        /// 3. Método: Aproximação por Polígono Regular
-        /// (desenho de n lados conectados)
-        /// </summary>
+        // 3. Aproximação por Polígono Regular
         private void DrawCirclePolygonApprox(Point center, int radius, Color color)
         {
-            // Defina quantos lados terá o polígono
-            int n = 60; // você pode alterar para 30, 90, etc.
+            // Decide quantos lados usar
+            int n = 60; // pode ajustar para 30, 90 etc.
 
-            // Calcula os vértices
+            // Calcula cada vértice do polígono
             double anguloPorSegmento = (2.0 * Math.PI) / n;
             Point[] vertices = new Point[n];
 
@@ -318,41 +354,114 @@ namespace GraphicPrimitives
             for (int i = 0; i < n; i++)
             {
                 Point p0 = vertices[i];
-                Point p1 = vertices[(i + 1) % n]; // fecha o polígono
-                // usar DDA, Bresenham ou a "Equação da Reta"
+                Point p1 = vertices[(i + 1) % n];
+                // Usa DDA para cada lado, por exemplo
                 DrawLineDDAUnsafe(p0, p1, color);
             }
         }
 
         /// <summary>
-        /// Desenha os 8 pontos de simetria a partir de (x,y).
+        /// Desenha os 8 pontos de simetria (x,y) de uma circunferência centrada em (cx,cy).
         /// </summary>
         private unsafe void PutCirclePoints(byte* ptr, int stride, int cx, int cy, int x, int y, Color color)
         {
             PutPixel(ptr, stride, cx + x, cy + y, color);
-            PutPixel(ptr, stride, cx + x, cy - y, color);
             PutPixel(ptr, stride, cx - x, cy + y, color);
+            PutPixel(ptr, stride, cx + x, cy - y, color);
             PutPixel(ptr, stride, cx - x, cy - y, color);
 
             PutPixel(ptr, stride, cx + y, cy + x, color);
-            PutPixel(ptr, stride, cx + y, cy - x, color);
             PutPixel(ptr, stride, cx - y, cy + x, color);
+            PutPixel(ptr, stride, cx + y, cy - x, color);
             PutPixel(ptr, stride, cx - y, cy - x, color);
         }
 
-        /// <summary>
-        /// Troca de valores inteiros (auxiliar do Bresenham de retas).
-        /// </summary>
-        private void Swap(ref int a, ref int b)
+        // =================================
+        // DESENHO DE ELIPSE (PONTO MÉDIO)
+        // =================================
+
+        private unsafe void DrawEllipseMidpointUnsafe(Point center, int a, int b, Color color)
         {
-            int temp = a;
-            a = b;
-            b = temp;
+            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
+            BitmapData data = drawingBitmap.LockBits(
+                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+            );
+            byte* ptr = (byte*)data.Scan0;
+            int stride = data.Stride;
+
+            int cx = center.X;
+            int cy = center.Y;
+
+            // Equações do midpoint da elipse
+            double a2 = a * (double)a;
+            double b2 = b * (double)b;
+
+            // 1ª Região
+            double x = 0;
+            double y = b;
+
+            // d1 inicial
+            double d1 = b2 - (a2 * b) + (0.25 * a2);
+            PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
+
+            // Enquanto slope < -1 => (2 b^2 x < 2 a^2 y)
+            while ((b2 * (x + 1)) < (a2 * (y - 0.5)))
+            {
+                if (d1 < 0)
+                {
+                    // Escolhe E
+                    d1 += b2 * (2 * x + 3);
+                }
+                else
+                {
+                    // Escolhe SE
+                    d1 += b2 * (2 * x + 3) + a2 * (-2 * y + 2);
+                    y--;
+                }
+                x++;
+                PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
+            }
+
+            // 2ª Região
+            double d2 = b2 * ((x + 0.5) * (x + 0.5))
+                      + a2 * ((y - 1) * (y - 1))
+                      - a2 * b2;
+
+            while (y > 0)
+            {
+                if (d2 < 0)
+                {
+                    // escolhe E (x++, y--)
+                    x++;
+                    d2 += b2 * (2 * x + 2) + a2 * (-2 * y + 3);
+                }
+                else
+                {
+                    // escolhe S (y--)
+                    d2 += a2 * (-2 * y + 3);
+                }
+                y--;
+                PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
+            }
+
+            drawingBitmap.UnlockBits(data);
         }
 
         /// <summary>
-        /// Limpa o painel.
+        /// Desenha os 4 pontos de simetria de uma elipse (x,y) centrada em (cx,cy).
         /// </summary>
+        private unsafe void PutEllipsePoints(byte* ptr, int stride, int cx, int cy, int x, int y, Color color)
+        {
+            PutPixel(ptr, stride, cx + x, cy + y, color);
+            PutPixel(ptr, stride, cx - x, cy + y, color);
+            PutPixel(ptr, stride, cx + x, cy - y, color);
+            PutPixel(ptr, stride, cx - x, cy - y, color);
+        }
+
+        // =================================
+        // LIMPAR
+        // =================================
+
         private void btnClear_Click(object sender, EventArgs e)
         {
             using (Graphics g = Graphics.FromImage(drawingBitmap))
