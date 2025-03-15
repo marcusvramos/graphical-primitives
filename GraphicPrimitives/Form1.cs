@@ -9,6 +9,9 @@ namespace GraphicPrimitives
     {
         private Point? startPoint = null;
         private Bitmap drawingBitmap;
+        private List<List<Point>> polygons = new List<List<Point>>();
+        private List<Point> polygonPoints = [];
+        private bool isDrawingPolygon = false;
 
         public Form1()
         {
@@ -30,79 +33,185 @@ namespace GraphicPrimitives
             e.Graphics.DrawImage(drawingBitmap, 0, 0);
         }
 
+        private void algoritmosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Define o texto do groupBoxMenu como "Algoritmos"
+            groupBoxMenu.Text = "Algoritmos";
+
+            // Mostra os controles relacionados aos algoritmos
+            rbEqReta.Visible = true;
+            rbDDA.Visible = true;
+            rbPMedio.Visible = true;
+            rbEqCirc.Visible = true;
+            rbPMCirc.Visible = true;
+            rbCircPoligono.Visible = true;
+            rbElipse.Visible = true;
+
+            // Oculta os controles relacionados aos polígonos
+            listBoxPolygons.Visible = false;
+            labelPolygonPoints.Visible = false;
+
+            isDrawingPolygon = false;
+
+            // Atualiza o layout do groupBoxMenu
+            groupBoxMenu.PerformLayout();
+        }
+
         private void panelDraw_MouseDown(object sender, MouseEventArgs e)
         {
-            if (startPoint == null)
+            if (isDrawingPolygon)
             {
-                // Primeiro clique
-                startPoint = e.Location;
-
-                // Marca visualmente (opcional)
-                using (Graphics g = Graphics.FromImage(drawingBitmap))
+                if (e.Button == MouseButtons.Left)
                 {
-                    g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
+                    polygonPoints.Add(e.Location);
+
+                    // Desenha o ponto e a linha para o próximo ponto
+                    using (Graphics g = Graphics.FromImage(drawingBitmap))
+                    {
+                        g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
+                        if (polygonPoints.Count > 1)
+                        {
+                            Point lastPoint = polygonPoints[polygonPoints.Count - 2];
+                            g.DrawLine(Pens.Black, lastPoint, e.Location);
+                        }
+                    }
+                    panelDraw.Invalidate();
                 }
-                panelDraw.Invalidate(new Rectangle(e.X - 3, e.Y - 3, 7, 7));
+                else if (e.Button == MouseButtons.Right)
+                {
+                    // Finaliza o polígono
+                    if (polygonPoints.Count > 2)
+                    {
+                        using (Graphics g = Graphics.FromImage(drawingBitmap))
+                        {
+                            g.DrawLine(Pens.Black, polygonPoints[polygonPoints.Count - 1], polygonPoints[0]);
+                        }
+                        panelDraw.Invalidate();
+                    }
+                    // Adiciona o polígono à lista de polígonos
+                    polygons.Add([.. polygonPoints]);
+                    listBoxPolygons.Items.Add($"Polígono {polygons.Count}");
+                    panelDraw.Invalidate();
+                    polygonPoints.Clear();
+                }
             }
             else
             {
-                // Segundo clique
-                Point endPoint = e.Location;
+                if (startPoint == null)
+                {
+                    // Primeiro clique
+                    startPoint = e.Location;
 
-                // =====================================
-                // RETAS
-                // =====================================
-                if (rbEqReta.Checked)
-                {
-                    DrawLineEquationUnsafe(startPoint.Value, endPoint, Color.Red);
+                    // Marca visualmente (opcional)
+                    using (Graphics g = Graphics.FromImage(drawingBitmap))
+                    {
+                        g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
+                    }
+                    panelDraw.Invalidate(new Rectangle(e.X - 3, e.Y - 3, 7, 7));
                 }
-                else if (rbDDA.Checked)
+                else
                 {
-                    DrawLineDDAUnsafe(startPoint.Value, endPoint, Color.Green);
-                }
-                else if (rbPMedio.Checked)
-                {
-                    DrawLineBresenhamUnsafe(startPoint.Value, endPoint, Color.Blue);
-                }
+                    // Segundo clique
+                    Point endPoint = e.Location;
 
-                // =====================================
-                // CIRCUNFERÊNCIA
-                // =====================================
-                else if (rbEqCirc.Checked)
-                {
-                    int r = CalcularRaio(startPoint.Value, endPoint);
-                    DrawCircleEquationUnsafe(startPoint.Value, r, Color.Orange);
-                }
-                else if (rbPMCirc.Checked)
-                {
-                    int r = CalcularRaio(startPoint.Value, endPoint);
-                    DrawCircleMidpointUnsafe(startPoint.Value, r, Color.Purple);
-                }
-                else if (rbCircPoligono.Checked)
-                {
-                    int r = CalcularRaio(startPoint.Value, endPoint);
-                    DrawCirclePolygonApprox(startPoint.Value, r, Color.Brown);
-                }
+                    // =====================================
+                    // RETAS
+                    // =====================================
+                    if (rbEqReta.Checked)
+                    {
+                        DrawLineEquationUnsafe(startPoint.Value, endPoint, Color.Red);
+                    }
+                    else if (rbDDA.Checked)
+                    {
+                        DrawLineDDAUnsafe(startPoint.Value, endPoint, Color.Green);
+                    }
+                    else if (rbPMedio.Checked)
+                    {
+                        DrawLineBresenhamUnsafe(startPoint.Value, endPoint, Color.Blue);
+                    }
 
-                // =====================================
-                // ELIPSE
-                // =====================================
-                else if (rbElipse.Checked)
-                {
-                    // Calcula semi-eixos a e b
-                    // a = diferença em X, b = diferença em Y
-                    int a = Math.Abs(endPoint.X - startPoint.Value.X);
-                    int b = Math.Abs(endPoint.Y - startPoint.Value.Y);
+                    // =====================================
+                    // CIRCUNFERÊNCIA
+                    // =====================================
+                    else if (rbEqCirc.Checked)
+                    {
+                        int r = CalcularRaio(startPoint.Value, endPoint);
+                        DrawCircleEquationUnsafe(startPoint.Value, r, Color.Orange);
+                    }
+                    else if (rbPMCirc.Checked)
+                    {
+                        int r = CalcularRaio(startPoint.Value, endPoint);
+                        DrawCircleMidpointUnsafe(startPoint.Value, r, Color.Purple);
+                    }
+                    else if (rbCircPoligono.Checked)
+                    {
+                        int r = CalcularRaio(startPoint.Value, endPoint);
+                        DrawCirclePolygonApprox(startPoint.Value, r, Color.Brown);
+                    }
 
-                    DrawEllipseMidpointUnsafe(startPoint.Value, a, b, Color.DarkRed);
+                    // =====================================
+                    // ELIPSE
+                    // =====================================
+                    else if (rbElipse.Checked)
+                    {
+                        // Calcula semi-eixos a e b
+                        // a = diferença em X, b = diferença em Y
+                        int a = Math.Abs(endPoint.X - startPoint.Value.X);
+                        int b = Math.Abs(endPoint.Y - startPoint.Value.Y);
+
+                        DrawEllipseMidpointUnsafe(startPoint.Value, a, b, Color.DarkRed);
+                    }
+
+                    // Invalida tudo para forçar o repaint
+                    panelDraw.Invalidate();
+
+                    // Reseta o ponto inicial
+                    startPoint = null;
                 }
-
-                // Invalida tudo para forçar o repaint
-                panelDraw.Invalidate();
-
-                // Reseta o ponto inicial
-                startPoint = null;
             }
+        }
+
+        private void listBoxPolygons_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxPolygons.SelectedIndex != -1)
+            {
+                // Obtém o polígono selecionado
+                var polygon = polygons[listBoxPolygons.SelectedIndex];
+
+                // Exibe os pontos no Label
+                labelPolygonPoints.Text = "Pontos do Polígono:\r\n";
+                foreach (var point in polygon)
+                {
+                    Console.WriteLine(point);
+                    labelPolygonPoints.Text += $"({point.X}, {point.Y})\r\n";
+                }
+            }
+        }
+
+        private void poligonosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Ativa o modo de desenho de polígonos
+            isDrawingPolygon = true;
+            polygonPoints.Clear();
+
+            // Define o texto do groupBoxMenu como "Polígonos"
+            groupBoxMenu.Text = "Polígonos";
+
+            // Oculta os controles relacionados aos algoritmos
+            rbEqReta.Visible = false;
+            rbDDA.Visible = false;
+            rbPMedio.Visible = false;
+            rbEqCirc.Visible = false;
+            rbPMCirc.Visible = false;
+            rbCircPoligono.Visible = false;
+            rbElipse.Visible = false;
+
+            // Exibe os controles relacionados aos polígonos
+            listBoxPolygons.Visible = true;
+            labelPolygonPoints.Visible = true;
+
+            // Atualiza o layout do groupBoxMenu
+            groupBoxMenu.PerformLayout();
         }
 
         /// <summary>
@@ -470,6 +579,8 @@ namespace GraphicPrimitives
             }
             panelDraw.Invalidate();
             startPoint = null;
+            polygons.Clear();
+            listBoxPolygons.Items.Clear();
         }
     }
 }

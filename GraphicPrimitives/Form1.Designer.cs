@@ -30,6 +30,14 @@ namespace GraphicPrimitives
         // RadioButton de Elipse
         private RadioButton rbElipse;
 
+        // Menu
+        private MenuStrip menuStrip;
+        private ToolStripMenuItem algoritmosToolStripMenuItem;
+        private ToolStripMenuItem poligonosToolStripMenuItem;
+
+        private ListBox listBoxPolygons;
+        private TextBox labelPolygonPoints;
+
         /// <summary>
         /// Limpa os recursos que estão sendo usados.
         /// </summary>
@@ -152,6 +160,50 @@ namespace GraphicPrimitives
             btnClear.Click += new EventHandler(this.btnClear_Click);
 
             // 
+            // menuStrip
+            // 
+            this.menuStrip = new MenuStrip();
+            this.menuStrip.Dock = DockStyle.Top;
+            this.menuStrip.BackColor = Color.WhiteSmoke;
+            this.menuStrip.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point);
+
+            // 
+            // algoritmosToolStripMenuItem
+            // 
+            this.algoritmosToolStripMenuItem = new ToolStripMenuItem();
+            this.algoritmosToolStripMenuItem.Text = "Algoritmos";
+            this.algoritmosToolStripMenuItem.Click += new EventHandler(this.algoritmosToolStripMenuItem_Click);
+
+            // 
+            // poligonosToolStripMenuItem
+            // 
+            this.poligonosToolStripMenuItem = new ToolStripMenuItem();
+            this.poligonosToolStripMenuItem.Text = "Polígonos";
+            this.poligonosToolStripMenuItem.Click += new EventHandler(this.poligonosToolStripMenuItem_Click);
+
+            // No método InitializeComponent
+            this.listBoxPolygons = new ListBox();
+            this.listBoxPolygons.Location = new Point(20, 50);
+            this.listBoxPolygons.Size = new Size(260, 100);
+            this.listBoxPolygons.SelectedIndexChanged += new EventHandler(this.listBoxPolygons_SelectedIndexChanged);
+            this.listBoxPolygons.Visible = false;
+
+            this.labelPolygonPoints = new TextBox();
+            this.labelPolygonPoints.Location = new Point(20, 150);
+            this.labelPolygonPoints.Size = new Size(260, 100);
+            this.labelPolygonPoints.Multiline = true;
+            this.labelPolygonPoints.ReadOnly = true;
+            this.labelPolygonPoints.ScrollBars = ScrollBars.Vertical;
+            this.labelPolygonPoints.Font = new Font("Consolas", 10);
+            this.labelPolygonPoints.WordWrap = false;
+            this.labelPolygonPoints.Text = "Pontos do Polígono:";
+            this.labelPolygonPoints.Visible = false;
+
+            // Adiciona os itens ao menu
+            this.menuStrip.Items.Add(this.algoritmosToolStripMenuItem);
+            this.menuStrip.Items.Add(this.poligonosToolStripMenuItem);
+
+            // 
             // Adiciona controles ao groupBox
             // 
             this.groupBoxMenu.Controls.Add(this.rbEqReta);
@@ -163,11 +215,15 @@ namespace GraphicPrimitives
             this.groupBoxMenu.Controls.Add(this.rbElipse);
             this.groupBoxMenu.Controls.Add(btnClear);
 
+            this.groupBoxMenu.Controls.Add(this.listBoxPolygons);
+            this.groupBoxMenu.Controls.Add(this.labelPolygonPoints);
+
             // 
             // Adiciona os controles ao Form
             // 
             this.Controls.Add(this.panelDraw);
             this.Controls.Add(this.groupBoxMenu);
+            this.Controls.Add(this.menuStrip);
 
             this.MinimumSize = new Size(800, 600);
             this.ResumeLayout(false);
