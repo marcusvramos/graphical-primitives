@@ -1,586 +1,343 @@
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace GraphicPrimitives
 {
     public partial class Form1 : Form
     {
-        private Point? startPoint = null;
-        private Bitmap drawingBitmap;
-        private List<List<Point>> polygons = new List<List<Point>>();
-        private List<Point> polygonPoints = [];
-        private bool isDrawingPolygon = false;
+        private Bitmap originalImage;
+        private Bitmap currentImage;
 
         public Form1()
         {
             InitializeComponent();
+            this.Padding = new Padding(50, 0, 0, 0);
+            this.WindowState = FormWindowState.Maximized;
         }
 
-        protected override void OnLoad(EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            base.OnLoad(e);
-            drawingBitmap = new Bitmap(
-                panelDraw.ClientSize.Width, 
-                panelDraw.ClientSize.Height, 
-                PixelFormat.Format32bppArgb
-            );
         }
 
-        private void panelDraw_Paint(object sender, PaintEventArgs e)
+        private void btnCarregar_Click_1(object sender, EventArgs e)
         {
-            e.Graphics.DrawImage(drawingBitmap, 0, 0);
-        }
-
-        private void algoritmosToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // Define o texto do groupBoxMenu como "Algoritmos"
-            groupBoxMenu.Text = "Algoritmos";
-
-            // Mostra os controles relacionados aos algoritmos
-            rbEqReta.Visible = true;
-            rbDDA.Visible = true;
-            rbPMedio.Visible = true;
-            rbEqCirc.Visible = true;
-            rbPMCirc.Visible = true;
-            rbCircPoligono.Visible = true;
-            rbElipse.Visible = true;
-
-            // Oculta os controles relacionados aos polígonos
-            listBoxPolygons.Visible = false;
-            labelPolygonPoints.Visible = false;
-
-            isDrawingPolygon = false;
-
-            // Atualiza o layout do groupBoxMenu
-            groupBoxMenu.PerformLayout();
-        }
-
-        private void panelDraw_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (isDrawingPolygon)
+            using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                if (e.Button == MouseButtons.Left)
+                ofd.Filter = "Imagens|*.png;*.jpg;*.jpeg;*.bmp";
+                if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    polygonPoints.Add(e.Location);
-
-                    // Desenha o ponto e a linha para o próximo ponto
-                    using (Graphics g = Graphics.FromImage(drawingBitmap))
-                    {
-                        g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
-                        if (polygonPoints.Count > 1)
-                        {
-                            Point lastPoint = polygonPoints[polygonPoints.Count - 2];
-                            g.DrawLine(Pens.Black, lastPoint, e.Location);
-                        }
-                    }
-                    panelDraw.Invalidate();
-                }
-                else if (e.Button == MouseButtons.Right)
-                {
-                    // Finaliza o polígono
-                    if (polygonPoints.Count > 2)
-                    {
-                        using (Graphics g = Graphics.FromImage(drawingBitmap))
-                        {
-                            g.DrawLine(Pens.Black, polygonPoints[polygonPoints.Count - 1], polygonPoints[0]);
-                        }
-                        panelDraw.Invalidate();
-                    }
-                    // Adiciona o polígono à lista de polígonos
-                    polygons.Add([.. polygonPoints]);
-                    listBoxPolygons.Items.Add($"Polígono {polygons.Count}");
-                    panelDraw.Invalidate();
-                    polygonPoints.Clear();
-                }
-            }
-            else
-            {
-                if (startPoint == null)
-                {
-                    // Primeiro clique
-                    startPoint = e.Location;
-
-                    // Marca visualmente (opcional)
-                    using (Graphics g = Graphics.FromImage(drawingBitmap))
-                    {
-                        g.FillEllipse(Brushes.Black, e.X - 2, e.Y - 2, 5, 5);
-                    }
-                    panelDraw.Invalidate(new Rectangle(e.X - 3, e.Y - 3, 7, 7));
-                }
-                else
-                {
-                    // Segundo clique
-                    Point endPoint = e.Location;
-
-                    // =====================================
-                    // RETAS
-                    // =====================================
-                    if (rbEqReta.Checked)
-                    {
-                        DrawLineEquationUnsafe(startPoint.Value, endPoint, Color.Red);
-                    }
-                    else if (rbDDA.Checked)
-                    {
-                        DrawLineDDAUnsafe(startPoint.Value, endPoint, Color.Green);
-                    }
-                    else if (rbPMedio.Checked)
-                    {
-                        DrawLineBresenhamUnsafe(startPoint.Value, endPoint, Color.Blue);
-                    }
-
-                    // =====================================
-                    // CIRCUNFERÊNCIA
-                    // =====================================
-                    else if (rbEqCirc.Checked)
-                    {
-                        int r = CalcularRaio(startPoint.Value, endPoint);
-                        DrawCircleEquationUnsafe(startPoint.Value, r, Color.Orange);
-                    }
-                    else if (rbPMCirc.Checked)
-                    {
-                        int r = CalcularRaio(startPoint.Value, endPoint);
-                        DrawCircleMidpointUnsafe(startPoint.Value, r, Color.Purple);
-                    }
-                    else if (rbCircPoligono.Checked)
-                    {
-                        int r = CalcularRaio(startPoint.Value, endPoint);
-                        DrawCirclePolygonApprox(startPoint.Value, r, Color.Brown);
-                    }
-
-                    // =====================================
-                    // ELIPSE
-                    // =====================================
-                    else if (rbElipse.Checked)
-                    {
-                        // Calcula semi-eixos a e b
-                        // a = diferença em X, b = diferença em Y
-                        int a = Math.Abs(endPoint.X - startPoint.Value.X);
-                        int b = Math.Abs(endPoint.Y - startPoint.Value.Y);
-
-                        DrawEllipseMidpointUnsafe(startPoint.Value, a, b, Color.DarkRed);
-                    }
-
-                    // Invalida tudo para forçar o repaint
-                    panelDraw.Invalidate();
-
-                    // Reseta o ponto inicial
-                    startPoint = null;
+                    originalImage = new Bitmap(ofd.FileName);
+                    currentImage = new Bitmap(originalImage);
+                    picOriginal.Image = currentImage;
+                    AtualizarMiniaturas(currentImage);
+                    tbBrilho.Value = 0;
+                    tbHue.Value = 0;
                 }
             }
         }
 
-        private void listBoxPolygons_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnGrayLuminancia_Click(object sender, EventArgs e)
         {
-            if (listBoxPolygons.SelectedIndex != -1)
+            if (currentImage == null) return;
+            Bitmap temp = new Bitmap(currentImage.Width, currentImage.Height);
+            for (int y = 0; y < currentImage.Height; y++)
             {
-                // Obtém o polígono selecionado
-                var polygon = polygons[listBoxPolygons.SelectedIndex];
-
-                // Exibe os pontos no Label
-                labelPolygonPoints.Text = "Pontos do Polígono:\r\n";
-                foreach (var point in polygon)
+                for (int x = 0; x < currentImage.Width; x++)
                 {
-                    Console.WriteLine(point);
-                    labelPolygonPoints.Text += $"({point.X}, {point.Y})\r\n";
+                    Color c = currentImage.GetPixel(x, y);
+                    int gray = (int)(0.299 * c.R + 0.587 * c.G + 0.114 * c.B);
+                    gray = Math.Max(0, Math.Min(255, gray));
+                    temp.SetPixel(x, y, Color.FromArgb(gray, gray, gray));
                 }
             }
+            currentImage = temp;
+            picOriginal.Image = currentImage;
+            AtualizarMiniaturas(currentImage);
         }
 
-        private void poligonosToolStripMenuItem_Click(object sender, EventArgs e)
+        private void btnReset_Click(object sender, EventArgs e)
         {
-            // Ativa o modo de desenho de polígonos
-            isDrawingPolygon = true;
-            polygonPoints.Clear();
-
-            // Define o texto do groupBoxMenu como "Polígonos"
-            groupBoxMenu.Text = "Polígonos";
-
-            // Oculta os controles relacionados aos algoritmos
-            rbEqReta.Visible = false;
-            rbDDA.Visible = false;
-            rbPMedio.Visible = false;
-            rbEqCirc.Visible = false;
-            rbPMCirc.Visible = false;
-            rbCircPoligono.Visible = false;
-            rbElipse.Visible = false;
-
-            // Exibe os controles relacionados aos polígonos
-            listBoxPolygons.Visible = true;
-            labelPolygonPoints.Visible = true;
-
-            // Atualiza o layout do groupBoxMenu
-            groupBoxMenu.PerformLayout();
+            if (originalImage == null) return;
+            currentImage = new Bitmap(originalImage);
+            picOriginal.Image = currentImage;
+            tbBrilho.Value = 0;
+            tbHue.Value = 0;
+            AtualizarMiniaturas(currentImage);
         }
 
-        /// <summary>
-        /// Calcula o raio entre o ponto (centro) e outro (perímetro).
-        /// </summary>
-        private int CalcularRaio(Point c, Point p)
+        private void btnIntervaloHue_Click(object sender, EventArgs e)
         {
-            int dx = p.X - c.X;
-            int dy = p.Y - c.Y;
-            return (int)Math.Round(Math.Sqrt(dx * dx + dy * dy));
+            if (originalImage == null) return;
+            double minH = 0;
+            double maxH = 360;
+            double.TryParse(txtMinHue.Text, out minH);
+            double.TryParse(txtMaxHue.Text, out maxH);
+            Bitmap temp = new Bitmap(originalImage.Width, originalImage.Height);
+            for (int y = 0; y < originalImage.Height; y++)
+            {
+                for (int x = 0; x < originalImage.Width; x++)
+                {
+                    Color c = originalImage.GetPixel(x, y);
+                    double H, S, I;
+                    RGBToHSI(c.R, c.G, c.B, out H, out S, out I);
+                    if (H >= minH && H <= maxH)
+                    {
+                        temp.SetPixel(x, y, c);
+                    }
+                    else
+                    {
+                        temp.SetPixel(x, y, Color.Black);
+                    }
+                }
+            }
+            currentImage = temp;
+            picOriginal.Image = currentImage;
+            AtualizarMiniaturas(currentImage);
         }
 
-        /// <summary>
-        /// Desenha um pixel (x,y) no bitmap.
-        /// </summary>
-        private unsafe void PutPixel(byte* ptr, int stride, int x, int y, Color color)
+        private void PicOriginal_MouseMove(object sender, MouseEventArgs e)
         {
-            if (x < 0 || x >= drawingBitmap.Width || y < 0 || y >= drawingBitmap.Height)
+            if (currentImage == null) return;
+            Point pt = TranslateZoomMousePosition(picOriginal, e.Location);
+            if (pt.X < 0 || pt.X >= currentImage.Width || pt.Y < 0 || pt.Y >= currentImage.Height)
                 return;
-
-            int index = y * stride + x * 4;
-            ptr[index + 0] = color.B;
-            ptr[index + 1] = color.G;
-            ptr[index + 2] = color.R;
-            ptr[index + 3] = color.A;
+            Color c = currentImage.GetPixel(pt.X, pt.Y);
+            int r = c.R;
+            int g = c.G;
+            int b = c.B;
+            int cC = 255 - r;
+            int cM = 255 - g;
+            int cY = 255 - b;
+            double h, s, i;
+            RGBToHSI(r, g, b, out h, out s, out i);
+            string info = $"RGB({r}, {g}, {b}) | CMY({cC}, {cM}, {cY}) | HSI(H={h:F1}, S={s:F1}, I={i:F1})";
+            lblInfo.Text = info;
         }
 
-        // =================================
-        // DESENHO DE RETAS
-        // =================================
-
-        // 1. Equação da Reta
-        private unsafe void DrawLineEquationUnsafe(Point p0, Point p1, Color color)
+        private void TbBrilho_Scroll(object sender, EventArgs e)
         {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int dx = p1.X - p0.X;
-            int dy = p1.Y - p0.Y;
-
-            if (Math.Abs(dx) >= Math.Abs(dy))
+            if (originalImage == null) return;
+            double brilho = tbBrilho.Value;
+            Bitmap temp = new Bitmap(originalImage.Width, originalImage.Height);
+            for (int y = 0; y < originalImage.Height; y++)
             {
-                if (p0.X > p1.X)
+                for (int x = 0; x < originalImage.Width; x++)
                 {
-                    Point temp = p0; p0 = p1; p1 = temp;
-                    dx = p1.X - p0.X;
-                    dy = p1.Y - p0.Y;
+                    Color c = originalImage.GetPixel(x, y);
+                    double H, S, I;
+                    RGBToHSI(c.R, c.G, c.B, out H, out S, out I);
+                    I = Math.Max(0, Math.Min(255, I + brilho));
+                    Color newColor = HSIToRGB(H, S, I);
+                    temp.SetPixel(x, y, newColor);
                 }
-                double m = dx != 0 ? (double)dy / dx : 0;
-                for (int x = p0.X; x <= p1.X; x++)
+            }
+            double hueShift = tbHue.Value;
+            if (Math.Abs(hueShift) > 0.001)
+            {
+                temp = AplicarMudancaHue(temp, hueShift);
+            }
+            currentImage = temp;
+            picOriginal.Image = currentImage;
+            AtualizarMiniaturas(currentImage);
+        }
+
+        private void TbHue_Scroll(object sender, EventArgs e)
+        {
+            if (originalImage == null) return;
+            double hueShift = tbHue.Value;
+            int brilho = tbBrilho.Value;
+            Bitmap temp = new Bitmap(originalImage.Width, originalImage.Height);
+            for (int y = 0; y < originalImage.Height; y++)
+            {
+                for (int x = 0; x < originalImage.Width; x++)
                 {
-                    int y = (int)Math.Round(p0.Y + m * (x - p0.X));
-                    PutPixel(ptr, stride, x, y, color);
+                    Color c = originalImage.GetPixel(x, y);
+                    int r = c.R + brilho;
+                    int g = c.G + brilho;
+                    int b = c.B + brilho;
+                    r = Math.Max(0, Math.Min(255, r));
+                    g = Math.Max(0, Math.Min(255, g));
+                    b = Math.Max(0, Math.Min(255, b));
+                    temp.SetPixel(x, y, Color.FromArgb(r, g, b));
                 }
+            }
+            temp = AplicarMudancaHue(temp, hueShift);
+            currentImage = temp;
+            picOriginal.Image = currentImage;
+            AtualizarMiniaturas(currentImage);
+        }
+
+        private Point TranslateZoomMousePosition(PictureBox pic, Point mouse)
+        {
+            if (pic.Image == null) return new Point(-1, -1);
+            float imageAspect = (float)pic.Image.Width / pic.Image.Height;
+            float boxAspect = (float)pic.Width / pic.Height;
+            int imgWidth, imgHeight, offsetX, offsetY;
+            if (imageAspect > boxAspect)
+            {
+                imgWidth = pic.Width;
+                imgHeight = (int)(pic.Width / imageAspect);
+                offsetX = 0;
+                offsetY = (pic.Height - imgHeight) / 2;
             }
             else
             {
-                if (p0.Y > p1.Y)
+                imgHeight = pic.Height;
+                imgWidth = (int)(pic.Height * imageAspect);
+                offsetX = (pic.Width - imgWidth) / 2;
+                offsetY = 0;
+            }
+            int mx = mouse.X - offsetX;
+            int my = mouse.Y - offsetY;
+            if (mx < 0 || my < 0 || mx >= imgWidth || my >= imgHeight)
+                return new Point(-1, -1);
+            float rx = mx / (float)imgWidth;
+            float ry = my / (float)imgHeight;
+            int px = (int)(rx * pic.Image.Width);
+            int py = (int)(ry * pic.Image.Height);
+            return new Point(px, py);
+        }
+
+        private void RGBToHSI(int R, int G, int B, out double H, out double S, out double I)
+        {
+            double r = R / 255.0;
+            double g = G / 255.0;
+            double b = B / 255.0;
+            double num = 0.5 * ((r - g) + (r - b));
+            double den = Math.Sqrt((r - g) * (r - g) + (r - b) * (g - b));
+            double theta = 0;
+            if (den != 0)
+            {
+                double acosValue = num / den;
+                if (acosValue > 1.0) acosValue = 1.0;
+                if (acosValue < -1.0) acosValue = -1.0;
+                theta = Math.Acos(acosValue);
+            }
+            if (b > g) theta = 2.0 * Math.PI - theta;
+            H = theta * 180.0 / Math.PI;
+            double minVal = Math.Min(r, Math.Min(g, b));
+            double sum = r + g + b;
+            S = (sum == 0) ? 0 : 1 - (3 * minVal / sum);
+            double intensity = sum / 3.0;
+            S *= 100.0;
+            I = intensity * 255.0;
+        }
+
+        private Color HSIToRGB(double H, double S, double I)
+        {
+            double h = H * Math.PI / 180.0;
+            double s = S / 100.0;
+            double i = I / 255.0;
+            double r = 0, g = 0, b = 0;
+            if (h < 0) h += 2.0 * Math.PI;
+            double z = 1.0 - Math.Abs((h / (Math.PI / 3.0)) % 2.0 - 1.0);
+            double c = (3 * i * s) / (1 + z);
+            double x = c * z;
+            double hDeg = H;
+            double m = i * (1 - s);
+            if (hDeg >= 0 && hDeg < 120)
+            {
+                r = c + m;
+                g = x + m;
+                b = m;
+            }
+            else if (hDeg >= 120 && hDeg < 240)
+            {
+                r = m;
+                g = c + m;
+                b = x + m;
+            }
+            else
+            {
+                r = x + m;
+                g = m;
+                b = c + m;
+            }
+            int R = (int)Math.Round(r * 255.0);
+            int G = (int)Math.Round(g * 255.0);
+            int B = (int)Math.Round(b * 255.0);
+            R = Math.Max(0, Math.Min(255, R));
+            G = Math.Max(0, Math.Min(255, G));
+            B = Math.Max(0, Math.Min(255, B));
+            return Color.FromArgb(R, G, B);
+        }
+
+        private void AtualizarMiniaturas(Bitmap source)
+        {
+            if (source == null) return;
+            picGrayR.Image = CriarGrayChannelRGB(source, 'R');
+            picGrayG.Image = CriarGrayChannelRGB(source, 'G');
+            picGrayB.Image = CriarGrayChannelRGB(source, 'B');
+            picGrayH.Image = CriarGrayChannelHSI(source, 'H');
+            picGrayS.Image = CriarGrayChannelHSI(source, 'S');
+            picGrayI.Image = CriarGrayChannelHSI(source, 'I');
+        }
+
+        private Bitmap CriarGrayChannelRGB(Bitmap src, char canal)
+        {
+            Bitmap gray = new Bitmap(src.Width, src.Height);
+            for (int y = 0; y < src.Height; y++)
+            {
+                for (int x = 0; x < src.Width; x++)
                 {
-                    Point temp = p0; p0 = p1; p1 = temp;
-                    dx = p1.X - p0.X;
-                    dy = p1.Y - p0.Y;
+                    Color c = src.GetPixel(x, y);
+                    int val = 0;
+                    switch (canal)
+                    {
+                        case 'R': val = c.R; break;
+                        case 'G': val = c.G; break;
+                        case 'B': val = c.B; break;
+                    }
+                    gray.SetPixel(x, y, Color.FromArgb(val, val, val));
                 }
-                double mInv = dy != 0 ? (double)dx / dy : 0;
-                for (int y = p0.Y; y <= p1.Y; y++)
+            }
+            return gray;
+        }
+
+        private Bitmap CriarGrayChannelHSI(Bitmap src, char canal)
+        {
+            Bitmap gray = new Bitmap(src.Width, src.Height);
+            for (int y = 0; y < src.Height; y++)
+            {
+                for (int x = 0; x < src.Width; x++)
                 {
-                    int x = (int)Math.Round(p0.X + mInv * (y - p0.Y));
-                    PutPixel(ptr, stride, x, y, color);
+                    Color c = src.GetPixel(x, y);
+                    double H, S, I;
+                    RGBToHSI(c.R, c.G, c.B, out H, out S, out I);
+                    double valor = 0;
+                    switch (canal)
+                    {
+                        case 'H': valor = (H / 360.0) * 255.0; break;
+                        case 'S': valor = (S / 100.0) * 255.0; break;
+                        case 'I': valor = I; break;
+                    }
+                    int v = (int)Math.Round(valor);
+                    v = Math.Max(0, Math.Min(255, v));
+                    gray.SetPixel(x, y, Color.FromArgb(v, v, v));
                 }
             }
-
-            drawingBitmap.UnlockBits(data);
+            return gray;
         }
 
-        // 2. DDA
-        private unsafe void DrawLineDDAUnsafe(Point p0, Point p1, Color color)
+        private Bitmap AplicarMudancaHue(Bitmap src, double hueShift)
         {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int dx = p1.X - p0.X;
-            int dy = p1.Y - p0.Y;
-            int steps = Math.Max(Math.Abs(dx), Math.Abs(dy));
-
-            double Xinc = steps != 0 ? (double)dx / steps : 0;
-            double Yinc = steps != 0 ? (double)dy / steps : 0;
-
-            double x = p0.X;
-            double y = p0.Y;
-            for (int i = 0; i <= steps; i++)
+            Bitmap result = new Bitmap(src.Width, src.Height);
+            for (int y = 0; y < src.Height; y++)
             {
-                PutPixel(ptr, stride, (int)Math.Round(x), (int)Math.Round(y), color);
-                x += Xinc;
-                y += Yinc;
-            }
-
-            drawingBitmap.UnlockBits(data);
-        }
-
-        // 3. Ponto Médio (Bresenham)
-        private unsafe void DrawLineBresenhamUnsafe(Point p0, Point p1, Color color)
-        {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int x0 = p0.X, y0 = p0.Y;
-            int x1 = p1.X, y1 = p1.Y;
-
-            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
-            if (steep)
-            {
-                Swap(ref x0, ref y0);
-                Swap(ref x1, ref y1);
-            }
-            if (x0 > x1)
-            {
-                Swap(ref x0, ref x1);
-                Swap(ref y0, ref y1);
-            }
-
-            int dx = x1 - x0;
-            int dy = Math.Abs(y1 - y0);
-            int error = dx / 2;
-            int ystep = (y0 < y1) ? 1 : -1;
-            int y = y0;
-
-            for (int x = x0; x <= x1; x++)
-            {
-                if (steep)
-                    PutPixel(ptr, stride, y, x, color);
-                else
-                    PutPixel(ptr, stride, x, y, color);
-
-                error -= dy;
-                if (error < 0)
+                for (int x = 0; x < src.Width; x++)
                 {
-                    y += ystep;
-                    error += dx;
+                    Color c = src.GetPixel(x, y);
+                    double H, S, I;
+                    RGBToHSI(c.R, c.G, c.B, out H, out S, out I);
+                    H += hueShift;
+                    if (H < 0) H += 360.0;
+                    if (H >= 360) H -= 360.0;
+                    Color newColor = HSIToRGB(H, S, I);
+                    result.SetPixel(x, y, newColor);
                 }
             }
-
-            drawingBitmap.UnlockBits(data);
-        }
-
-        private void Swap(ref int a, ref int b)
-        {
-            int temp = a;
-            a = b;
-            b = temp;
-        }
-
-        // =================================
-        // DESENHO DE CIRCUNFERÊNCIA
-        // =================================
-
-        // 1. Equação Explícita (com raiz + simetria)
-        private unsafe void DrawCircleEquationUnsafe(Point center, int radius, Color color)
-        {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int cx = center.X;
-            int cy = center.Y;
-
-            for (int x = 0; x <= radius; x++)
-            {
-                double temp = (radius * (double)radius) - (x * (double)x);
-                if (temp < 0) break;
-                int y = (int)Math.Round(Math.Sqrt(temp));
-
-                PutCirclePoints(ptr, stride, cx, cy, x, y, color);
-            }
-
-            drawingBitmap.UnlockBits(data);
-        }
-
-        // 2. Ponto Médio (Midpoint) da Circunferência
-        private unsafe void DrawCircleMidpointUnsafe(Point center, int radius, Color color)
-        {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int cx = center.X;
-            int cy = center.Y;
-
-            int x = 0;
-            int y = radius;
-            int d = 1 - radius;
-
-            PutCirclePoints(ptr, stride, cx, cy, x, y, color);
-
-            while (x < y)
-            {
-                x++;
-                if (d < 0)
-                {
-                    d += 2 * x + 1;
-                }
-                else
-                {
-                    y--;
-                    d += 2 * (x - y) + 1;
-                }
-                PutCirclePoints(ptr, stride, cx, cy, x, y, color);
-            }
-
-            drawingBitmap.UnlockBits(data);
-        }
-
-        // 3. Aproximação por Polígono Regular
-        private void DrawCirclePolygonApprox(Point center, int radius, Color color)
-        {
-            // Decide quantos lados usar
-            int n = 60; // pode ajustar para 30, 90 etc.
-
-            // Calcula cada vértice do polígono
-            double anguloPorSegmento = (2.0 * Math.PI) / n;
-            Point[] vertices = new Point[n];
-
-            for (int i = 0; i < n; i++)
-            {
-                double ang = i * anguloPorSegmento;
-                int x = center.X + (int)Math.Round(radius * Math.Cos(ang));
-                int y = center.Y + (int)Math.Round(radius * Math.Sin(ang));
-                vertices[i] = new Point(x, y);
-            }
-
-            // Desenha linhas entre vértices consecutivos
-            for (int i = 0; i < n; i++)
-            {
-                Point p0 = vertices[i];
-                Point p1 = vertices[(i + 1) % n];
-                // Usa DDA para cada lado, por exemplo
-                DrawLineDDAUnsafe(p0, p1, color);
-            }
-        }
-
-        /// <summary>
-        /// Desenha os 8 pontos de simetria (x,y) de uma circunferência centrada em (cx,cy).
-        /// </summary>
-        private unsafe void PutCirclePoints(byte* ptr, int stride, int cx, int cy, int x, int y, Color color)
-        {
-            PutPixel(ptr, stride, cx + x, cy + y, color);
-            PutPixel(ptr, stride, cx - x, cy + y, color);
-            PutPixel(ptr, stride, cx + x, cy - y, color);
-            PutPixel(ptr, stride, cx - x, cy - y, color);
-
-            PutPixel(ptr, stride, cx + y, cy + x, color);
-            PutPixel(ptr, stride, cx - y, cy + x, color);
-            PutPixel(ptr, stride, cx + y, cy - x, color);
-            PutPixel(ptr, stride, cx - y, cy - x, color);
-        }
-
-        // =================================
-        // DESENHO DE ELIPSE (PONTO MÉDIO)
-        // =================================
-
-        private unsafe void DrawEllipseMidpointUnsafe(Point center, int a, int b, Color color)
-        {
-            Rectangle rect = new Rectangle(0, 0, drawingBitmap.Width, drawingBitmap.Height);
-            BitmapData data = drawingBitmap.LockBits(
-                rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
-            );
-            byte* ptr = (byte*)data.Scan0;
-            int stride = data.Stride;
-
-            int cx = center.X;
-            int cy = center.Y;
-
-            // Equações do midpoint da elipse
-            double a2 = a * (double)a;
-            double b2 = b * (double)b;
-
-            // 1ª Região
-            double x = 0;
-            double y = b;
-
-            // d1 inicial
-            double d1 = b2 - (a2 * b) + (0.25 * a2);
-            PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
-
-            // Enquanto slope < -1 => (2 b^2 x < 2 a^2 y)
-            while ((b2 * (x + 1)) < (a2 * (y - 0.5)))
-            {
-                if (d1 < 0)
-                {
-                    // Escolhe E
-                    d1 += b2 * (2 * x + 3);
-                }
-                else
-                {
-                    // Escolhe SE
-                    d1 += b2 * (2 * x + 3) + a2 * (-2 * y + 2);
-                    y--;
-                }
-                x++;
-                PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
-            }
-
-            // 2ª Região
-            double d2 = b2 * ((x + 0.5) * (x + 0.5))
-                      + a2 * ((y - 1) * (y - 1))
-                      - a2 * b2;
-
-            while (y > 0)
-            {
-                if (d2 < 0)
-                {
-                    // escolhe E (x++, y--)
-                    x++;
-                    d2 += b2 * (2 * x + 2) + a2 * (-2 * y + 3);
-                }
-                else
-                {
-                    // escolhe S (y--)
-                    d2 += a2 * (-2 * y + 3);
-                }
-                y--;
-                PutEllipsePoints(ptr, stride, cx, cy, (int)x, (int)y, color);
-            }
-
-            drawingBitmap.UnlockBits(data);
-        }
-
-        /// <summary>
-        /// Desenha os 4 pontos de simetria de uma elipse (x,y) centrada em (cx,cy).
-        /// </summary>
-        private unsafe void PutEllipsePoints(byte* ptr, int stride, int cx, int cy, int x, int y, Color color)
-        {
-            PutPixel(ptr, stride, cx + x, cy + y, color);
-            PutPixel(ptr, stride, cx - x, cy + y, color);
-            PutPixel(ptr, stride, cx + x, cy - y, color);
-            PutPixel(ptr, stride, cx - x, cy - y, color);
-        }
-
-        // =================================
-        // LIMPAR
-        // =================================
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            using (Graphics g = Graphics.FromImage(drawingBitmap))
-            {
-                g.Clear(Color.White);
-            }
-            panelDraw.Invalidate();
-            startPoint = null;
-            polygons.Clear();
-            listBoxPolygons.Items.Clear();
+            return result;
         }
     }
 }
