@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GraphicPrimitives")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+828149cd540e495b2311d60cc64df8bfe740b54c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("GraphicPrimitives")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GraphicPrimitives")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

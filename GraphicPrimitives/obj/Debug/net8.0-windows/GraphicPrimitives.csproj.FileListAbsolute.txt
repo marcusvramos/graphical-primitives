@@ -31,3 +31,19 @@ C:\Users\GuilhermeColonheseCa\Desktop\Pessoal\graphical-primitives\GraphicPrimit
 C:\Users\GuilhermeColonheseCa\Desktop\Pessoal\graphical-primitives\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.pdb
 C:\Users\GuilhermeColonheseCa\Desktop\Pessoal\graphical-primitives\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.genruntimeconfig.cache
 C:\Users\GuilhermeColonheseCa\Desktop\Pessoal\graphical-primitives\GraphicPrimitives\obj\Debug\net8.0-windows\ref\GraphicPrimitives.dll
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\bin\Debug\net8.0-windows\GraphicPrimitives.exe
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\bin\Debug\net8.0-windows\GraphicPrimitives.deps.json
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\bin\Debug\net8.0-windows\GraphicPrimitives.runtimeconfig.json
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\bin\Debug\net8.0-windows\GraphicPrimitives.dll
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\bin\Debug\net8.0-windows\GraphicPrimitives.pdb
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.Form1.resources
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.csproj.GenerateResource.cache
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.AssemblyInfoInputs.cache
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.AssemblyInfo.cs
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.csproj.CoreCompileInputs.cache
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.dll
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\refint\GraphicPrimitives.dll
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.pdb
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\GraphicPrimitives.genruntimeconfig.cache
+C:\Users\PC\OneDrive\Área de Trabalho\graphical-primitives-master\GraphicPrimitives\obj\Debug\net8.0-windows\ref\GraphicPrimitives.dll
